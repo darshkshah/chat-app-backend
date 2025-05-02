@@ -1,25 +1,171 @@
-from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.forms.models import  model_to_dict
 
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from users.models import User
+from .serializers import UserSerializer
 
 # Create your views here.
 
+@api_view(["GET"])
+def users(request, *args, **kwargs):
+
+    # if request.method == "GET":
+    #     return Response({"detail": '"GET" not allowed no no no'}, status=404)
+
+    users = User.objects.all()
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def user(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+def addUser(request):
+    data = request.data.copy()
+    password = data.pop('password', None)
+
+    if not password:
+        return Response({"response": "Password can not be empty"})
+
+    serializer = UserSerializer(data=data)
+
+    if serializer.is_valid():
+        user = serializer.save()
+            # Now set the password properly if it was provided
+
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["PATCH"])
+def updateUser(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    
+    password = request.data.get("password")
+    if password:
+        data = request.data.copy()
+        data.pop('password')
+
+        user.set_password(password)
+        user.save()
+    else:
+        data = request.data
+
+    serializer = UserSerializer(user, data=data, partial=True)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # data = {}
+    # if model_data:
+    #     data = model_to_dict(model_data, fields=['id', 'last_login', 'is_superuser', 'first_name', 'last_name', 'username', 'pn_country_code', 'phone_number', 'email', 'bio', 'online_status', 'created_at', 'is_active', 'is_staff'])
+
+    # return Response(data)
+
+
 # ['id', 'password', 'last_login', 'is_superuser', 'first_name', 'last_name', 'username', 'pn_country_code', 'phone_number', 'email', 'bio', 'avatar', 'online_status', 'created_at', 'is_active', 'is_staff']
 
-@api_view(["GET", "POST"])
-def api_home(request, *args, **kwargs):
-    if request.method == "GET":
-        return Response({"detail": '"GET" not allowed no no no'}, status=404)
-    model_data = User.objects.all().order_by('?').first()
-    data = {}
-    if model_data:
-        data = model_to_dict(model_data, fields=['id', 'last_login', 'is_superuser', 'first_name', 'last_name', 'username', 'pn_country_code', 'phone_number', 'email', 'bio', 'online_status', 'created_at', 'is_active', 'is_staff'])
 
-    return Response(data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # def api_home(request, *args, **kwargs):
 #     model_data = User.objects.all().order_by('?').first()
