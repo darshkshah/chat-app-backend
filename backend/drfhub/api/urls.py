@@ -6,5 +6,6 @@ urlpatterns = [
     path('users/', views.UserListAPIView.as_view()),
     path('users/<int:user_id>/', views.UserDetailAPIView.as_view()),
     path('add-user/', views.UserCreateView.as_view()),
-    path('update-user/<int:pk>/', views.UserUpdateView.as_view()),
+    # path('update-user/<int:pk>/', views.UserUpdateView.as_view()),
+    path('update-user/<int:user_id>/', views.UserUpdateView.as_view(), name='user-update'),
 ]
