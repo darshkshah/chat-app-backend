@@ -2,55 +2,47 @@ from django.db import models, IntegrityError
 from django.core.validators import MinLengthValidator, MaxLengthValidator, RegexValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, Group, Permission
 from django.utils.translation import gettext_lazy as _
-from users.utils import generate_random_bigint
+from django.utils.timezone import now
 
-class UserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("Email is required")
-        if not username:
-            raise ValueError("Username is required")
+import random
+from datetime import timedelta
 
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, email, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        return self.create_user(username, email, password, **extra_fields)
+from .utils import generate_random_bigint
+from .managers import UserManager
+from .validators import phone_number_validator, country_code_validator
 
 # Create your models here.
+def user_avatar_path(instance, filename):
+    return f"avatars/{instance.user_id}/{filename}"
+
 class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.BigIntegerField(primary_key=True, default=generate_random_bigint, editable=False)
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, unique=True)
-    pn_country_code = models.CharField(
+    first_name = models.CharField(max_length=150, blank=True, null=True)
+    last_name = models.CharField(max_length=150, blank=True, null=True)
+    username = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    phone_country_code = models.CharField(
             max_length=4,
-            validators= [ 
-                RegexValidator(r'^\+?[0-9]{1,4}$', message="Country code must be 1–4 digits, optionally prefixed with +"),
-            ],
-            help_text="E.g. '+1', '91'"
+            validators= [country_code_validator],
+            help_text="E.g. '+1', '91'",
+            null=False,
+            blank=False
         )
     phone_number = models.CharField(
         max_length=10,
-        validators=[
-            MinLengthValidator(10), 
-            MaxLengthValidator(10),
-            RegexValidator(r'^[0-9]{10}$', message="Phone number must be exactly 10 digits")
-        ],
+        validators=[MinLengthValidator(10), MaxLengthValidator(10), phone_number_validator],
+        unique=True,
+        null=False,
+        blank=False
     )
-    email = models.EmailField(unique=True)
-    bio = models.TextField(blank=True)
+    is_phone_verified = models.BooleanField(default=False, null=False, blank=False)
+    email = models.EmailField(unique=True, null=True, blank=True)
+    bio = models.TextField(blank=True, null=True)
     avatar = models.ImageField(
-        upload_to="avatars/%Y/%m/%d/",
+        upload_to=user_avatar_path,
         blank=True,
         null=True
     )
-    online_status = models.BooleanField(default=False)
+    online_status = models.BooleanField(default=False, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     groups = models.ManyToManyField(
@@ -76,8 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = ["email"]
+    USERNAME_FIELD = "phone_number"
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 
@@ -99,4 +91,33 @@ class User(AbstractBaseUser, PermissionsMixin):
             raise IntegrityError("Could not generate a unique user_id after multiple attempts.")
 
     def __str__(self):
-        return self.username
+        return self.phone_number
+
+class OTP(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    phone_country_code = models.CharField(max_length=4, null=False, blank=False, validators=[country_code_validator])
+    phone_number = models.CharField(max_length=10, null=False, blank=False, validators=[phone_number_validator])
+    otp = models.CharField(max_length=6, null=False, blank=False)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        unique_together = ('phone_country_code', 'phone_number')
+    
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_otp(cls, phone_country_code, phone_number):
+        otp_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        created_at = now()
+        expires_at = created_at + timedelta(minutes=10)
+        otp_obj, created = cls.objects.update_or_create(
+            phone_country_code = phone_country_code,
+            phone_number=phone_number,
+            defaults={'otp': otp_code, 'is_verified': False, 'expires_at': expires_at, 'created_at': created_at}
+        )
+        return otp_code

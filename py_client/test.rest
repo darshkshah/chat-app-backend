@@ -1,0 +1,61 @@
+POST http://127.0.0.1:8000/login/
+Content-Type: application/json
+
+{
+    "username": "darshshah2109",
+    "password": "12345678"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/users/
+Content-Type:  application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY0MDA3LCJpYXQiOjE3NDYyNjIyMDcsImp0aSI6IjVmNzBjZDBjYjk2MzRhNTRiMzM4YzVmYTM1ZDg4MTE3IiwidXNlcl9pZCI6NjYxMDE0OTA1NTY3OTI4MDI2fQ.EmC0SXjfu3VaOcrFjk1Gg8u9IuydLSzL3lRiwfv5pjQ
+
+###
+
+PATCH http://127.0.0.1:8000/api/update-user/963787811603739924/
+Content-Type:  application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY2NTcwLCJpYXQiOjE3NDYyNjQ3NzAsImp0aSI6ImY3ZTllZmVlMDMyNDQwZDJhOWU1MzBlNjE4NjY1ODk4IiwidXNlcl9pZCI6OTYzNzg3ODExNjAzNzM5OTI0fQ.DvwRmBcwB95ze9619k0lIVcxivr28oKiqQeotfawexg
+
+{
+    "first_name": "Atul"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/add-user/
+Content-Type: application/json
+
+{
+    "password": "password123",
+    "first_name": "knight",
+    "last_name": "rider",
+    "username": "atulpal3108",
+    "pn_country_code": "+1",
+    "phone_number": "1448997845",
+    "email": "contactm@darshshah.com",
+    "bio": "Amazing Bio."
+}
+
+###
+
+GET http://127.0.0.1:8000/api/users/666845133133526221
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY1NzEyLCJpYXQiOjE3NDYyNjM5MTIsImp0aSI6IjJlOTcwYTU3ZWIyZDRkMjZiZWJhNTQ2NjQ2YTE4NjczIiwidXNlcl9pZCI6NjY2ODQ1MTMzMTMzNTI2MjIxfQ.r5Wsko_r_HO8dMKaO0hTkmCiGT_O-K5Yib18KZ3s6rw
+
+###
+
+POST http://127.0.0.1:8000/login/
+Content-Type: application/json
+
+{
+    "username": "knightrider",
+    "password": "password123"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/users/963787811603739924
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY2MTU0LCJpYXQiOjE3NDYyNjQzNTQsImp0aSI6IjMyMzU0NDAxMzMxYzQ3NDM4ZjAxMzJlMjdjMDhjMGE5IiwidXNlcl9pZCI6ODQ2NDM5Nzk1NTk2Njc3OTQwfQ.bbOJARO_zyje2fVQYkzzVQAte6kcwYme8bTULxWXrzc

@@ -37,7 +37,7 @@ class Chat(models.Model):
 
 class ChatParticipants(models.Model):
     pk = CompositePrimaryKey("chat", "user")
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='participants')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
 
