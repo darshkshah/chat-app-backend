@@ -51,22 +51,22 @@ class RequestOTPView(views.APIView):
         country_code=serializer.validated_data['country_code']
         phone_number=serializer.validated_data['phone_number']
         otp = OTP.generate_otp(phone_country_code=country_code, phone_number=phone_number)
-        print(country_code)
-        print(phone_number)
+        # print(country_code)
+        # print(phone_number)
         # Twilio send OTP code here UNCOMMENT later
-        try:
-            message=client.messages.create(
-                body=f"Your OTP is {otp}. Do not share it with anyone under any circumstance.",
-                from_="+12792393326",
-                to=f"{country_code}{phone_number}"
-            )
-        except TwilioRestException as e:
-            return Response({
-                    'detail': f'Could not send message to {country_code}{phone_number}. As the phone number is not verified with twilio. To send messages to unverified numbers upgrade to a premium subscription on twilio', 
-                },
-                status=status.HTTP_403_FORBIDDEN
-            )
-        print(message.body)
+        # try:
+        #     message=client.messages.create(
+        #         body=f"Your OTP is {otp}. Do not share it with anyone under any circumstance.",
+        #         from_="+12792393326",
+        #         to=f"{country_code}{phone_number}"
+        #     )
+        # except TwilioRestException as e:
+        #     return Response({
+        #             'detail': f'Could not send message to {country_code}{phone_number}. As the phone number is not verified with twilio. To send messages to unverified numbers upgrade to a premium subscription on twilio', 
+        #         },
+        #         status=status.HTTP_403_FORBIDDEN
+        #     )
+        # print(message.body)
         return Response({'message': f'OTP {otp} sent successfully to {country_code}{phone_number}'}, status=status.HTTP_200_OK)
 
 class VerifyOTPView(views.APIView):
