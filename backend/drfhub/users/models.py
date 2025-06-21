@@ -91,6 +91,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             raise IntegrityError("Could not generate a unique user_id after multiple attempts.")
 
     def __str__(self):
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name} ({self.phone_number})"
+        elif self.username:
+            return f"{self.username} ({self.phone_number})"
         return self.phone_number
 
 class OTP(models.Model):

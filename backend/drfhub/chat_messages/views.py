@@ -11,7 +11,6 @@ from chats.models import Chat, ChatParticipants
 from .models import Message, MessageStatus
 from users.models import User
 from .serializers import MessageSerializer, DateTimeRequestSerializer, MessageSendSerializer, MessageStatusSerializer
-
 # Create your views here.
 
 class MessageSendAPIView(views.APIView):

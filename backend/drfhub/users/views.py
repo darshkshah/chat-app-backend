@@ -1,5 +1,8 @@
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.db.models.functions import Concat
 
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
@@ -8,6 +11,7 @@ from twilio.base.exceptions import TwilioRestException
 from rest_framework import status, views, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -100,8 +104,33 @@ class UserRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
-    lookup_url_kwarg = 'user_id'
-    
+
+    def get_object(self):
+        user_id = self.request.query_params.get("user_id")
+        phone_number = self.request.query_params.get("phone_number")
+        
+        if self.request.method == 'GET':
+            if user_id and phone_number:
+                raise ValidationError("Provide only one of 'user_id' and 'phone_number'.")
+            if user_id:
+                return get_object_or_404(User, user_id=user_id)
+            if phone_number:
+                # print(phone_number)
+                # phone_number = f"+{phone_number.replace(' ', '')}"
+                # print(phone_number)
+                user = next(
+                    (u for u in User.objects.only('user_id', 'phone_country_code', 'phone_number')
+                    if f"{u.phone_country_code}{u.phone_number}" == phone_number),
+                    None
+                )
+                if not user:
+                    raise Http404("User not found with that phone number")
+                return user
+            raise ValidationError("You must provide either 'user_id' or both 'phone_country_code' and 'phone_number'.")
+        if not user_id:
+            raise ValidationError("You must provide 'user_id' for updates.")
+        return get_object_or_404(User, user_id=user_id)
+        
     def update(self, request, *args, **kwargs):
         user = self.get_object()
 
@@ -137,3 +166,10 @@ class UserListCreateView(generics.ListCreateAPIView):
         if self.request.method == 'POST':  # Create operation
             return []  # No permissions required for user creation
         return [IsAuthenticated()]
+    
+    def list(self, request, *args, **kwargs):
+        only_phone = request.query_params.get('only_phone_number') == 'true'
+        if only_phone:
+            data = list(User.objects.annotate(full_phone=Concat('phone_country_code', 'phone_number')).values_list('full_phone', flat=True))
+            return Response(data, status=status.HTTP_200_OK)
+        return super().list(request, *args, **kwargs)

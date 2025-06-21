@@ -4,6 +4,8 @@ from users.utils import generate_random_bigint
 
 from users.models import User
 
+def chat_pic_path(instance, filename):
+    return f"chat/{instance.chat_id}/{filename}"
 
 # Create your models here.
 class Chat(models.Model):
@@ -12,6 +14,12 @@ class Chat(models.Model):
     is_personal = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    chat_name = models.CharField(max_length=150, blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to=chat_pic_path,
+        blank=True,
+        null=True
+    )
 
     # Custom save function for User model
     def save(self, *args, **kwargs):
