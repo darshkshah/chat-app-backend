@@ -3,3 +3,7 @@ djangorestframework
 pyyaml
 requests
 django-cors-headers
+environs
+channels[daphne]
+djangorestframework-simplejwt
+twilio
